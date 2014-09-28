@@ -1,0 +1,38 @@
+---
+title: "Tidy Transformations"
+author: "Allison O'Connor"
+date: "September 27, 2014"
+output: html_document
+---
+
+This is an attempt to transform messy data into Tidy Data.
+
+```{r}
+library(historydata)
+library(tidyr)
+library(dplyr)
+
+```
+
+
+
+```{r}
+
+setwd("~/Documents/Clio3/rproject")
+sarna <- read.csv("historydata/data-raw/sarna.csv", stringsAsFactors = FALSE)
+
+sarna %>% 
+  gather(data = sarna, type, numb, estimate_low:estimate_high:percentage_pop_low:percentage_pop_high)
+
+
+#The gather command by itself works, but not with sarna%>% executed before it. Also, need to find a way to write this out and save what I have.
+```
+
+```{r}
+
+```
+
+```{r}
+
+
+```
