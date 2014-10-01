@@ -36,6 +36,14 @@ sarna %>%
   filter(type == "estimate_low")
 
 ```
+I tried to gather the information in the early-colleges.csv file, and exclude any entries where the college doesn't have an "original" name, but it still listed the blank value. When I Knit HTML, it displays even worse.
+
+
+#```{r}
+#colleges <- read.csv("historydata/data-raw/early-colleges.csv", stringsAsFactors = FALSE)
+#colleges %>%
+#  gather(characteristic, value, original_name:sponsorship, -college)
+#```
 
 Here we take population data, group it by year, then add up the population for all states by year and display the number of states in that year.
 
