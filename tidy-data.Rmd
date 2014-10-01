@@ -69,7 +69,17 @@ pop %>%
 
 ```
 
+Here I want to tidy up some of my data from last week.
+
 ```{r}
-
-
+heating <- read.csv("first-plot/1940_heating.csv", stringsAsFactors = FALSE)
+heating %>%
+  select(State.Name = state,
+         County.Name = county,
+         X..Occupied.Housing.Units..With.Central.Heating = percent-with,
+         X..Occupied.Housing.Units..Without.Central.Heating = percent-without) %>%
+  group_by(state) %>%
+  group_by(county) %>%
+  summarize(total_percent-with = mean(percent-with, na.rm = TRUE))
+  
 ```
