@@ -1,0 +1,180 @@
+---
+title: "Mapping"
+author: "Allison O'Connor"
+date: "October 7, 2014"
+output: html_document
+---
+
+Mapping exercises
+
+```{r}
+#call in the rgdal library
+library(rgdal)
+
+# call in the shape file and store it as map_sp
+map_sp <- readOGR("nhgis-shp/", "state_1850")
+
+#inspect the class and structure of the object map_sp
+class(map_sp)
+str(map_sp, max.level = 2)
+
+#look at specific slots in the object
+map_sp@bbox
+map_sp@proj4string
+
+#look at the data frame
+head(map_sp@data)
+
+#check there is useful data
+plot(map_sp)
+
+#load ggmap
+library(ggmap)
+
+geocode("San Francisco, CA", output = "more")
+
+#creating list of cities and then coding them
+cities <- data.frame(name = c("Flushing, NY", "Centerport, NY", "Southampton, NY", "Madison, WI", "Alexandria, VA", "Fairfax, VA"), stringsAsFactors = FALSE)
+cities
+cities_geocoded <- geocode(cities$name)
+cities_geocoded
+
+cities <- cbind(cities, cities_geocoded)
+
+library(ggplot2)
+ggplot(cities, aes(x = lon, y = lat)) +
+  geom_point() +
+  geom_text(aes(label = name), vjust = -1) +
+  coord_map()
+
+map_df <- fortify(map_sp, region = "GISJOIN")
+
+head(map_df)
+
+```
+
+```{r}
+map_1850 <- ggplot() +
+  geom_map(data = map_df,
+           map = map_df,
+           aes(x = long, y = lat, group = group, map_id = id),
+           fill = "white",
+           color = "black",
+           size = 0.2) +
+  coord_map() +
+  theme_minimal()
+map_1850
+
+```
+
+```{r}
+map_1850 +
+  geom_point(data = cities, aes(x = lon, y = lat),
+             color = "red", size = 3) +
+  geom_text(data = cities, aes(x = lon, y = lat, label = name),
+            vjust = -1)
+
+```
+
+This plots the Paulist missions as points.
+
+```{r}
+library(dplyr)
+library(historydata)
+data(paulist_missions)
+glimpse(paulist_missions)
+
+map_1850 +
+  geom_point(data = paulist_missions,
+             aes(x = long, y = lat, size = confessions),
+             color = "red", shape = 1) +
+  theme(legend.position = "bottom") +
+  scale_size(range = c(2, 8)) +
+  ggtitle("Paulist missions as points")
+```
+
+Here it plots it as Density.
+
+```{r}
+map_1850 +
+  geom_density2d(data = paulist_missions,
+                 aes(x = long, y = lat)) +
+  theme(legend.position = "bottom") +
+  ggtitle("Paulist missions with density plot")
+```
+
+Choropleths
+
+```{r}
+counties_1850_sp <- readOGR("nhgis-shp/", "US_county_1850")
+counties_1850_df <- fortify(counties_1850_sp, region = "GISJOIN")
+glimpse(counties_1850_df)
+
+farms_1850 <- read.csv("nhgis0002_csv/nhgis0002_ds11_1850_county.csv", stringsAsFactors = FALSE)
+glimpse(farms_1850)
+
+farms_merged <- counties_1850_df %>%
+  left_join(farms_1850, by = c("id" = "GISJOIN"))
+glimpse(farms_merged)
+```
+
+```{r}
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, fill = AE7001, map_id = id)) +
+  geom_map(map = farms_merged) +
+  ggtitle("Average value of farms and buildings in dollars/acre in 1850") +
+  coord_map() +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+summary(farms_1850$AE7001)
+ggplot(data = farms_1850, aes(x = AE7001)) + geom_histogram(binwidth = 10) +
+  ggtitle("Distribution f average values of farmland in 1850")
+```
+
+```{r}
+library(classInt)
+classIntervals(farms_1850$AE7001, 9, "pretty")
+
+intervals <- classIntervals(farms_1850$AE7001, 9, "jenks")
+intervals$brks
+
+head(cut(farms_1850$AE7001, breaks = intervals$brks))
+
+farms_1850 <- farms_1850 %>%
+  mutate(value_classified = cut(AE7001, intervals$brks))
+
+farms_merged <- counties_1850_df %>%
+  left_join(farms_1850, by = c("id" = "GISJOIN"))
+glimpse(farms_merged)
+
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, map_id = id,
+           fill = value_classified)) +
+  geom_map(map = farms_merged) +
+  ggtitle("Average value of farms and buildings in dollars/acre in 1850") +
+  coord_map() +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+```{r}
+library(RColorBrewer)
+display.brewer.all()
+
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, map_id = id,
+           fill = value_classified)) +
+  geom_map(map = farms_merged, color ="gray", size = 0.2) +
+  ggtitle("Average value of farms and buildings in dollars/acre in 1850") +
+  coord_map() +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  scale_fill_brewer(palette = "YlGnBu") +
+  xlim(-98, -65)
+
+
+```
