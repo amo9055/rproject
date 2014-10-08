@@ -46,14 +46,15 @@ schools_merged <- map_df %>%
 glimpse(schools_merged)
 
 ggplot(data = schools_merged,
-       aes(x = long, y = lat, group = group, map_id = id, fill = value_classified)) +
+       aes(x = long, y = lat, group = group, map_id = id, fill = AQN001)) +
   geom_map(map = schools_merged, color ="gray", size = 0.2) +
   ggtitle("Average salary of teachers in 1880") +
   coord_map() +
   theme_minimal() +
   theme(legend.position = "bottom") +
-  scale_fill_brewer(palette = "YlGnBu") +
-  xlim(-98, -65)
+#   scale_fill_brewer(palette = "YlGnBu") +
+  xlim(-125, -65) +
+  ylim(25, 55)
 
 
 ```

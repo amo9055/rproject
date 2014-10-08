@@ -5,6 +5,7 @@ date: "October 7, 2014"
 output: html_document
 ---
 
+
 Mapping exercises
 
 ```{r}
@@ -178,3 +179,4 @@ ggplot(data = farms_merged,
 
 
 ```
+
