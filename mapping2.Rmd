@@ -1,0 +1,59 @@
+---
+title: "Mapping2"
+author: "Allison O'Connor"
+date: "October 8, 2014"
+output: html_document
+---
+
+Mapping2
+
+```{r}
+library(rgdal)
+library(dplyr)
+library(ggmap)
+library(ggplot2)
+library(classInt)
+library(RColorBrewer)
+```
+
+
+```{r}
+map_sp <- readOGR("nhgis-shp/", "state_1880")
+
+plot(map_sp)
+
+map_df <- fortify(map_sp, region = "GISJOIN")
+
+head(map_df)
+
+map_1880 <- ggplot() +
+  geom_map(data = map_df,
+           map = map_df,
+           aes(x = long, y = lat, group = group, map_id = id),
+           fill = "white",
+           color = "black",
+           size = 0.2) +
+  coord_map() +
+  theme_minimal()
+map_1880
+
+schools_1880 <- read.csv("nhgis0003_csv/nhgis0003_ds24_1880_state.csv", stringsAsFactors = FALSE)
+glimpse(schools_1880)
+
+
+schools_merged <- map_df %>%
+  left_join(schools_1880, by = c("id" = "GISJOIN"))
+glimpse(schools_merged)
+
+ggplot(data = schools_merged,
+       aes(x = long, y = lat, group = group, map_id = id, fill = value_classified)) +
+  geom_map(map = schools_merged, color ="gray", size = 0.2) +
+  ggtitle("Average salary of teachers in 1880") +
+  coord_map() +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  scale_fill_brewer(palette = "YlGnBu") +
+  xlim(-98, -65)
+
+
+```
